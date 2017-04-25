@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Animating plots with gganimate and tweenr">
+  <meta name="generator" content="Hugo 0.20.2" />
+
+  <title>Animating plots with gganimate and tweenr &middot; Dan Brennan</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="../../../../css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="../../../../css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="../../../../css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+
+  
+
+  <link rel="shortcut icon" href="../../../../img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  <a class="pure-menu-heading brand" href="../../../../">
+  <img src="../../../../img/danboyb.png" width="70px">
+</a>
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="../../../../about/">About</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="https://github.com/danboyb/website">GitHub</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="https://twitter.com/danboyb">Twitter</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+
+  <div>
+  <div class="small-print">
+    <small></small>
+  </div>
+  <div class="small-print">
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+  </div>
+</div>
+
+</div>
+
+
+  <div id="main">
+
+
+<div class="header">
+  <h1>Animating plots with gganimate and tweenr</h1>
+  <h2>Animating plots with gganimate and tweenr</h2>
+</div>
+<div class="content">
+
+  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>25 Apr 2017, 19:06</time>
+  </div>
+
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+
+</div>
+
+  <p>Animation can be added to <code>ggplot()</code> plots using the <code>gganimate</code> package by <a href="https://github.com/dgrtwo/gganimate">David Robinson</a>.</p>
+<p>Using the CSO Statbank API <strong>insert link</strong>, we can load in a table of population by county in Ireland for each Census since 1841.</p>
+<pre class="r"><code>library(rjstat)
+library(tidyverse)
+library(gganimate)
+library(tweenr)
+library(scales)
+
+census_url &lt;- &quot;http://www.cso.ie/StatbankServices/StatbankServices.svc/jsonservice/responseinstance/EY001&quot;
+
+pop_data &lt;- fromJSONstat(census_url)
+
+pop_data &lt;- pop_data[[1]] %&gt;% 
+    as_data_frame()</code></pre>
+<p>To look at county populations, filter to both sexes and filter out the total state populations.</p>
+<pre class="r"><code>pop_data &lt;- pop_data %&gt;% 
+    filter(Sex == &quot;Both sexes&quot;, County != &quot;State&quot;) %&gt;% 
+    rename(year = `Census Year`, pop = value) %&gt;% 
+    select(County, year, pop) %&gt;% 
+    mutate(year = as.numeric(year))</code></pre>
+<pre class="r"><code>pop_edit &lt;- pop_data %&gt;% 
+    rename(y = pop, time = year, id = County) %&gt;%
+    mutate(ease = &quot;linear&quot;)</code></pre>
+<pre class="r"><code>pop_tween &lt;- tween_elements(pop_edit, &quot;time&quot;, &quot;id&quot;, &quot;ease&quot;, nframes = 300)
+
+pop_tween &lt;- pop_tween %&gt;%
+    mutate(year = round(time), county = .group)
+
+pop_tween &lt;- inner_join(pop_tween, pop_data) %&gt;% 
+    as_data_frame()</code></pre>
+<pre class="r"><code>county_colours &lt;- read_csv(&quot;county-colours.csv&quot;)
+
+fill &lt;- setNames(as.character(county_colours$fill), county_colours$county)
+line &lt;- setNames(as.character(county_colours$line), county_colours$county)</code></pre>
+<pre class="r"><code>p &lt;- pop_tween %&gt;% 
+    #filter(year == i) %&gt;%
+    transform(county = reorder(county, -pop)) %&gt;%
+    ggplot(aes(county, y, colour = county, fill = county, frame = .frame)) +
+    geom_bar(stat = &quot;identity&quot;, position = &quot;identity&quot;, size = 0.2) +
+    geom_text(aes(label = year), colour = &quot;black&quot;, size = 0.1) +
+    scale_fill_manual(name = &quot;county&quot;, values = fill) +
+    scale_colour_manual(name = &quot;county&quot;, values = line) +
+    scale_y_continuous(labels = comma) +
+    labs(x = &quot;&quot;, y = &quot;National Population&quot;) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          legend.position=&quot;none&quot;,
+          panel.background = element_blank(),
+          panel.grid = element_blank(),
+          plot.title = element_text(size = 20))
+    
+gganimate(p, title_frame = FALSE, saver = &quot;gif&quot;, interval = 0.2)</code></pre>
+<p><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-1.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-2.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-3.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-4.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-5.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-6.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-7.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-8.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-9.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-10.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-11.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-12.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-13.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-14.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-15.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-16.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-17.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-18.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-19.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-20.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-21.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-22.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-23.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-24.png" width="672" /><img src="../../../../post/animating-plots_files/figure-html/unnamed-chunk-6-25.png" width="672" /></p>
+
+
+  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="../../../../2017/04/22/accessing-the-cso-statbank-api/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="../../../../2017/04/22/accessing-the-cso-statbank-api/">Accessing the CSO Statbank API</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
+</div>
+
+
+
+  
+
+</div>
+
+</div>
+</div>
+<script src="../../../../js/ui.js"></script>
+
+
+
+
+</body>
+</html>
+
