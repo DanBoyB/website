@@ -1,0 +1,50 @@
+---
+date: 2017-04-22T13:44:43Z
+title: Accessing the CSO Statbank API
+---
+
+CSO have an API for access to data on demographics and the economy in the [Statbank](http://www.cso.ie/px/pxeirestat/statire/SelectTable/Omrade0.asp?Planguage=0) database.
+
+The data is made available in JSON-stat format. There is an R package called _rjstat_ , developed by [Aaron Schumacher](https://github.com/ajschumacher/rjstat) to read and write data in this format.
+
+```{r, message = FALSE}
+install.packages("rjstat")
+library(rjstat)
+library(tidyverse)
+```
+
+The website for the API is [here](http://www.cso.ie/webserviceclient/DatasetListing.aspx). 
+
+The JSON data is stored in a url comprising a fixed address plus the table code. So this table would be available [here](http://www.cso.ie/StatbankServices/StatbankServices.svc/jsonservice/responseinstance/EY001) for the table "Population at Each Census from 1841 to 2016 by County, Sex and Census Year" which has the code EY001.
+
+Use the function ```fromJSONstat()``` to read in the JSON data as a list
+
+```{r}
+census_url <- "http://www.cso.ie/StatbankServices/StatbankServices.svc/jsonservice/responseinstance/EY001"
+
+table <- fromJSONstat(census_url)
+
+```
+
+Convert the list into a ```tibble()``` using ```as_data_frame()```
+
+```{r}
+table <- table[[1]] %>% 
+    as_data_frame()
+
+table
+```
+
+Use ```ggplot()``` to visualise, e.g. total national population for every Census Year between 1841 and 2016.
+
+```{r}
+table %>% 
+    filter(Sex == "Both sexes",
+           County == "State") %>% 
+    ggplot(aes(x = `Census Year`, y = value)) +
+    geom_bar(stat = "identity", fill = "dark blue") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    scale_y_continuous(labels = scales::comma) +
+    ylab("Population")
+```
