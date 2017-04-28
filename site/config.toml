@@ -1,4 +1,4 @@
-baseurl = "/"
+baseurl = "http://www.danbrennan.ie/"
 relativeurls = true
 languageCode = "en-us"
 title = "Dan Brennan"
