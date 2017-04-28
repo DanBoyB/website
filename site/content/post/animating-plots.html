@@ -45,6 +45,7 @@ pop_tween &lt;- inner_join(pop_tween, pop_data) %&gt;%
 
 fill &lt;- setNames(as.character(county_colours$fill), county_colours$county)
 line &lt;- setNames(as.character(county_colours$line), county_colours$county)</code></pre>
+<p><strong>EDIT:</strong> It seems that the plot will not render as a gif on this website. I’ll need to find a solution to this!</p>
 <pre class="r"><code>p &lt;- pop_tween %&gt;% 
     #filter(year == i) %&gt;%
     transform(county = reorder(county, -pop)) %&gt;%

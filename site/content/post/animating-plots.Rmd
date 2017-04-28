@@ -61,6 +61,7 @@ fill <- setNames(as.character(county_colours$fill), county_colours$county)
 line <- setNames(as.character(county_colours$line), county_colours$county)
 ```
 
+__EDIT:__ It seems that the plot will not render as a gif on this website. I'll need to find a solution to this!
 
 ```{r, warning = FALSE, message = FALSE}
 p <- pop_tween %>% 
